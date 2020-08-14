@@ -16,7 +16,7 @@ OS_RELEASE_CTXT = {
     for k, v in [item.split("=") for item in OS_RELEASE if item != '']
 }
 
-TEMPLATE_DIR = pathlib.Path("./src/templates")
+TEMPLATE_DIR = pathlib.Path("./templates")
 
 
 def _render_template(template_name, target, context):
