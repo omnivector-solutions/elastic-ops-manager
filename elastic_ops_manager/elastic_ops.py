@@ -1,8 +1,10 @@
 #!/usr/bin/python3
 """ElasticOpsManager."""
+import logging
 import pathlib
 import subprocess
 
+logger = logging.getLogger()
 
 from jinja2 import (
     Environment,
@@ -45,12 +47,37 @@ class ElasticOpsManager:
         self._install_elastic_resource(resource)
 
     def _install_elastic_resource(self, resource):
+        logger.debug(f'_install_elastic_resource(): OS={self._os}; \
+resource={resource}')
         if self._os == 'ubuntu':
-            subprocess.call([
-                "dpkg",
-                "-i",
-                resource
-            ])
+            # check if the resource is an RPM package
+            # (not likely, but 'filebeat.resource' is)
+            ret = subprocess.check_output(['file',
+                                           resource]).decode().find(' RPM v')
+            if ret == -1:
+                subprocess.call([
+                    "dpkg",
+                    "-i",
+                    resource
+                ])
+            else:
+                subprocess.call([
+                    "apt",
+                    "-y",
+                    "install",
+                    "rpm"
+                ])
+
+                # --nodeps is needed otherwise it will fail
+                # with complaint that /bin/sh is not installed.
+                ret = subprocess.call([
+                    "rpm",
+                    "--nodeps",
+                    "--install",
+                    resource
+                ])
+
+                logger.debug(f'_install_elastic_resource(): ret={ret}')
         elif self._os == 'centos':
             subprocess.call([
                 "rpm",
