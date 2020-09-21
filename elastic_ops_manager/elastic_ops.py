@@ -46,11 +46,29 @@ class ElasticOpsManager:
 
     def _install_elastic_resource(self, resource):
         if self._os == 'ubuntu':
-            subprocess.call([
-                "dpkg",
-                "-i",
-                resource
-            ])
+            # check if the resource is an RPM package
+            # (not likely, but 'filebeat.resource' is)
+            ret = subprocess.check_output(['file',
+                                           resource]).decode().find(' RPM v')
+            if ret == -1:
+                subprocess.call([
+                    "dpkg",
+                    "-i",
+                    resource
+                ])
+            else:
+                subprocess.call([
+                    "apt",
+                    "-y",
+                    "install",
+                    "rpm"
+                ])
+
+                subprocess.call([
+                    "rpm",
+                    "--install",
+                    resource
+                ])
         elif self._os == 'centos':
             subprocess.call([
                 "rpm",
